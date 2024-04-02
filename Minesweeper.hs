@@ -46,7 +46,10 @@ calculateNumbers board =
     getNumber :: Board -> Coordinate -> Int
     getNumber board (x, y) =
       let
-        neighbours = [(x + dx, y + dy) | dx <- [-1..1], dy <- [-1..1], dx /= 0 || dy /= 0, x + dx >= 0, x + dx < height, y + dy >= 0, y + dy < width] -- calculate the neighboring coordinates but restrict to the board boundaries
+        -- dx, dy = -1, 0, 1, guarding that the neighbor coordinates are not 0,0 which is currently investigated tile
+        -- also guarding that the neighbor coordinates are within the board boundaries
+        -- output of this row is a list of coordinates of neighboring tiles, for example (2,2) -> [(1,1), (1,2), (1,3), (2,1), (2,3), (3,1), (3,2), (3,3)]
+        neighbours = [(x + dx, y + dy) | dx <- [-1..1], dy <- [-1..1], dx /= 0 || dy /= 0, x + dx >= 0, x + dx < height, y + dy >= 0, y + dy < width]
         tiles = map (\(x, y) -> board !! x !! y) neighbours -- map the neighboring coordinates to the tiles
       in
         length $ filter (\tile -> tile == Mine || tile == FlaggedMine) tiles -- count the number of Mines and FlaggedMines in the neighboring tiles
@@ -86,7 +89,10 @@ revealTile board (x, y) =
       Empty n -> Revealed n -- if the tile is empty, reveal it
       _ -> tile -- if the tile is not empty, do nothing
     newRow = take y (board !! x) ++ [newTile] ++ drop (y + 1) (board !! x) -- build the new row with the new revealed tile
-    neighbours = [(x + dx, y + dy) | dx <- [-1..1], dy <- [-1..1], dx /= 0 || dy /= 0, x + dx >= 0, x + dx < length board, y + dy >= 0, y + dy < length (head board)] -- take the neighboring tiles in respect to board boundaries
+    -- dx, dy = -1, 0, 1, guarding that the neighbor coordinates are not 0,0 which is currently investigated tile
+    -- also guarding that the neighbor coordinates are within the board boundaries
+    -- output of this row is a list of coordinates of neighboring tiles, for example (2,2) -> [(1,1), (1,2), (1,3), (2,1), (2,3), (3,1), (3,2), (3,3)]
+    neighbours = [(x + dx, y + dy) | dx <- [-1..1], dy <- [-1..1], dx /= 0 || dy /= 0, x + dx >= 0, x + dx < length board, y + dy >= 0, y + dy < length (head board)]
     newBoard = if tile == Empty 0 then
       foldl revealTile (take x board ++ [newRow] ++ drop (x + 1) board) neighbours -- if the tile is empty and has no mines around it, reveal all neighboring tiles recursively
     else
