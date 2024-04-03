@@ -1,9 +1,5 @@
 import System.Random
-
 import Data.List
-import Data.Char
-
--- minesweeper game
 
 -- game types, GameState can be Playing, Won or Lost
 -- Tile can be Mine, FlaggedMine, Empty with the number of mines around it, Flagged with the number of mines around it,
@@ -23,10 +19,14 @@ generateBoard :: Int -> Int -> Int -> StdGen -> Board
 generateBoard width height mines gen = 
   let
     -- generate a list of random mine positions
+    -- takes mines amount of random numbers between 0 and width * height - 1, duplicates removed (nub)
     minePositions = take mines $ nub $ randomRs (0, width * height - 1) gen
-    -- generate a list of tiles
+
+    -- generate a list of tiles, if the index is in minePositions, the tile is a Mine, else it is Empty
     tiles = [if i `elem` minePositions then Mine else Empty 0 | i <- [0..width * height - 1]]
+
     -- generate a list of rows
+    -- batches the tiles into rows of given width
     rows = [take width $ drop (i * width) tiles | i <- [0..height - 1]]
   in
     rows
@@ -129,7 +129,6 @@ main = do
   let width = 10 -- width of the board
   let height = 10 -- height of the board
   let mines = 10 -- number of mines to place on the board
-  let gameState = Playing -- initial GameState
   randomGenerator <- newStdGen -- initialize new random number generator
   let board = calculateNumbers $ generateBoard width height mines randomGenerator -- generate a board with mines and then calculate the numbers of mines around each tile
   putStrLn "Welcome to Minesweeper!"
@@ -138,14 +137,14 @@ main = do
   putStrLn ("Number of mines: " ++ show mines)
   putStrLn "Good luck!"
   putStrLn ""
-  gameLoop gameState board -- start the game loop
+  gameLoop mines board -- start the game loop
   where
     -- game loop
-    -- function takes in a GameState and a Board and returns text
+    -- function takes in an integer (mine count) and a Board and returns text
     -- asks the user to enter a coordinate and an action, then reveals or flags the tile
-    gameLoop :: GameState -> Board -> IO ()
-    gameLoop state board = do
-      printBoard state board
+    gameLoop :: Int -> Board -> IO ()
+    gameLoop mines board = do
+      printBoard Playing board
       putStrLn ""
       putStrLn "Enter a coordinate and action."
       putStrLn "(R)eveal OR (F)lag, e.g. R 2 5 OR F 2 5"
@@ -157,14 +156,14 @@ main = do
       let inputWords = words input
       if length inputWords /= 3 then do
         putStrLn "Invalid input."
-        gameLoop state board
+        gameLoop mines board
       else do
         let action = head inputWords
         let x = read (inputWords !! 2) :: Int
         let y = read (inputWords !! 1) :: Int
         if x < 0 || x >= length board || y < 0 || y >= length (head board) then do
           putStrLn "Invalid input."
-          gameLoop state board
+          gameLoop mines board
         else do
           let tile = board !! x !! y
           case action of
@@ -174,15 +173,15 @@ main = do
                 printBoard Lost board
               else do
                 let newBoard = revealTile board (x, y) -- else reveal the tile and continue the game
-                gameLoop state newBoard
+                gameLoop mines newBoard
             "F" -> do -- action is Flag
               let newBoard = flagTile board (x, y) -- flag the tile
               let flaggedMines = length $ filter (== FlaggedMine) $ concat newBoard -- count FlaggedMines in board
-              if flaggedMines == 10 then do
+              if flaggedMines == mines then do
                 putStrLn "You won!" -- player wins if there is 10 flagged mines
                 printBoard Won newBoard
               else do
-                gameLoop state newBoard -- else continue the game
+                gameLoop mines newBoard -- else continue the game
             _ -> do
               putStrLn "Invalid input." -- if action is not R or F then print "Invalid input."
-              gameLoop state board
+              gameLoop mines board
