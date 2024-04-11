@@ -100,6 +100,10 @@ revealTile board (x, y) =
   in
     newBoard
 
+-- pad left, adds the pad character padAmount times to the left of the list of characters
+padLeft :: Int -> a -> [a] -> [a]
+padLeft padAmount padCharacter listOfCharacters =
+  replicate (padAmount - length listOfCharacters) padCharacter ++ listOfCharacters
 
 -- print a board and a coordinate system on left and top sides. top = x and left = y
 -- function takes in a GameState and a Board and prints the board with the coordinate system
@@ -108,10 +112,15 @@ printBoard :: GameState -> Board -> IO ()
 printBoard state board = do
   let width = length $ head board -- width is the length of the first row on Board
   let height = length board -- height is the length of the Board
-  putStrLn $ "   " ++ concatMap (\i -> " " ++ show i ++ " ") [0..width - 1] -- print the top coordinates on first row
-  putStrLn $ "   " ++ replicate (width * 3) '-' -- print a line below the top coordinates, each number takes about 3 dashes
 
-  mapM_ (\(i, row) -> putStrLn $ show i ++ " |" ++ concatMap (\tile -> " " ++ showTile state tile ++ " ") row) $ zip [0..] board -- print the row numbers and a pipe, then print the tiles with spaces between them
+  let maxCoordinateLength = length $ show $ max height width -- maximum coordinate length (10 = 2 chars, 9 = 1 char, etc.)
+  let paddedCoordinatesTop = concatMap (\i -> " " ++ padLeft maxCoordinateLength ' ' (show i) ++ " ") [0..width - 1] -- pad coordinates at the top
+  putStrLn $ "    " ++ paddedCoordinatesTop -- print the top coordinates on first row
+  putStrLn $ "    " ++ replicate (length paddedCoordinatesTop - 1) '-' -- print a line below the top coordinates, each number takes about 3 dashes
+
+  -- print the board with left coordinate (padded accordingly) and the tiles (padded accordingly to match with top coordinates)
+  -- showTile function prints the tile string representation according to game state and tile type
+  mapM_ (\(i, row) -> putStrLn $ padLeft maxCoordinateLength ' ' (show i) ++ " |" ++ concatMap (\tile -> " " ++ padLeft maxCoordinateLength ' ' (showTile state tile) ++ " ") row) $ zip [0..] board
   where
     showTile Lost Mine = "x" -- if the GameState is Lost, reveal all Mines
     showTile Lost FlaggedMine = "X" -- if the GameState is Lost, reveal all FlaggedMines
@@ -126,8 +135,8 @@ printBoard state board = do
 -- run the game
 main :: IO ()
 main = do
-  let width = 10 -- width of the board
-  let height = 10 -- height of the board
+  let width = 12 -- width of the board
+  let height = 12 -- height of the board
   let mines = 10 -- number of mines to place on the board
   randomGenerator <- newStdGen -- initialize new random number generator
   let board = calculateNumbers $ generateBoard width height mines randomGenerator -- generate a board with mines and then calculate the numbers of mines around each tile
