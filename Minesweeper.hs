@@ -132,6 +132,11 @@ printBoard state board = do
     showTile _ (Revealed n) = show n -- show all Revealed tiles with mines around them as the number of mines around them
 
 
+isNumber :: String -> Bool
+isNumber s = case reads s :: [(Integer, String)] of
+  [(_, "")] -> True
+  _ -> False
+
 -- run the game
 main :: IO ()
 main = do
@@ -173,31 +178,38 @@ main = do
           gameLoop mines board
         else do
           let action = head inputWords
-          -- todo: check if the input is a number
-          let x = read (inputWords !! 2) :: Int
-          let y = read (inputWords !! 1) :: Int
-          -- check if the input is within board bounds
-          if x < 0 || x >= length board || y < 0 || y >= length (head board) then do
+          let xCheck = inputWords !! 2
+          let yCheck = inputWords !! 1
+
+          if isNumber xCheck == False || isNumber yCheck == False then do
             putStrLn "Invalid input."
             gameLoop mines board
           else do
-            let tile = board !! x !! y
-            case action of
-              "R" -> do -- action is Reveal
-                if tile == Mine || tile == FlaggedMine then do
-                  putStrLn "You lost!" -- if the tile is a Mine or a FlaggedMine, the player loses
-                  printBoard Lost board
-                else do
-                  let newBoard = revealTile board (x, y) -- else reveal the tile and continue the game
-                  gameLoop mines newBoard
-              "F" -> do -- action is Flag
-                let newBoard = flagTile board (x, y) -- flag the tile
-                let flaggedMines = length $ filter (== FlaggedMine) $ concat newBoard -- count FlaggedMines in board
-                if flaggedMines == mines then do
-                  putStrLn "You won!" -- player wins if there is 10 flagged mines
-                  printBoard Won newBoard
-                else do
-                  gameLoop mines newBoard -- else continue the game
-              _ -> do
-                putStrLn "Invalid input." -- if action is not R or F then print "Invalid input."
-                gameLoop mines board
+            let x = read (inputWords !! 2) :: Int
+            let y = read (inputWords !! 1) :: Int
+
+            -- check if the input is within board bounds
+            if x < 0 || x >= length board || y < 0 || y >= length (head board) then do
+              putStrLn "Invalid input."
+              gameLoop mines board
+            else do
+              let tile = board !! x !! y
+              case action of
+                "R" -> do -- action is Reveal
+                  if tile == Mine || tile == FlaggedMine then do
+                    putStrLn "You lost!" -- if the tile is a Mine or a FlaggedMine, the player loses
+                    printBoard Lost board
+                  else do
+                    let newBoard = revealTile board (x, y) -- else reveal the tile and continue the game
+                    gameLoop mines newBoard
+                "F" -> do -- action is Flag
+                  let newBoard = flagTile board (x, y) -- flag the tile
+                  let flaggedMines = length $ filter (== FlaggedMine) $ concat newBoard -- count FlaggedMines in board
+                  if flaggedMines == mines then do
+                    putStrLn "You won!" -- player wins if there is 10 flagged mines
+                    printBoard Won newBoard
+                  else do
+                    gameLoop mines newBoard -- else continue the game
+                _ -> do
+                  putStrLn "Invalid input." -- if action is not R or F then print "Invalid input."
+                  gameLoop mines board
