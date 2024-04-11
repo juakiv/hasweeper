@@ -131,7 +131,7 @@ printBoard state board = do
     showTile _ (Revealed 0) = "#" -- show all Revealed tiles with 0 mines around them as #
     showTile _ (Revealed n) = show n -- show all Revealed tiles with mines around them as the number of mines around them
 
-
+-- check if a string is a number
 isNumber :: String -> Bool
 isNumber s = case reads s :: [(Integer, String)] of
   [(_, "")] -> True
