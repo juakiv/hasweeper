@@ -20,3 +20,6 @@ ghc Minesweeper.hs
 ```bash
 ./Minesweeper
 ```
+> [!NOTE]
+> Make sure you have random package installed for `System.Random` module to work.
+> `cabal install random`
