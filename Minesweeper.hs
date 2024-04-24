@@ -10,9 +10,9 @@ import Functions.Helpers
 -- run the game
 main :: IO ()
 main = do
-  let width = 10 -- width of the board
-  let height = 10 -- height of the board
-  let mines = 10 -- number of mines to place on the board
+  let width = 12 -- width of the board
+  let height = 12 -- height of the board
+  let mines = 16 -- number of mines to place on the board
 
   -- if the mine count is more than board size, dont start a game
   if width * height <= mines then do
@@ -74,12 +74,17 @@ main = do
                     gameLoop mines newBoard
                 "F" -> do -- action is Flag
                   let newBoard = flagTile board (x, y) -- flag the tile
-                  let flaggedMines = length $ filter (== FlaggedMine) $ concat newBoard -- count FlaggedMines in board
-                  if flaggedMines == mines then do
-                    putStrLn "You won!" -- player wins if there is 10 flagged mines
-                    printBoard Won newBoard
+                  let totalFlags = countFlaggedTiles newBoard
+                  if totalFlags >= mines + 3 then do
+                    putStrLn "Too many flags. Flag again to unflag."
+                    gameLoop mines board
                   else do
-                    gameLoop mines newBoard -- else continue the game
+                    let flaggedMines = length $ filter (== FlaggedMine) $ concat newBoard -- count FlaggedMines in board
+                    if flaggedMines == mines then do
+                      putStrLn "You won!" -- player wins if all mines are flagged
+                      printBoard Won newBoard
+                    else do
+                      gameLoop mines newBoard -- else continue the game
                 _ -> do
                   putStrLn "Invalid input." -- if action is not R or F then print "Invalid input."
                   gameLoop mines board
