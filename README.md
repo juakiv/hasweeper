@@ -16,10 +16,12 @@ git clone git@github.com:juakiv/hasweeper.git
 ghc Minesweeper.hs
 ```
 
+> [!NOTE]
+> Make sure you have random package installed for `System.Random` module to work.
+> 
+> `cabal install random`
+
 3. Run the build by running the newly created files. On Windows:
 ```bash
 ./Minesweeper
 ```
-> [!NOTE]
-> Make sure you have random package installed for `System.Random` module to work.
-> `cabal install random`
