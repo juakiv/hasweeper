@@ -10,12 +10,10 @@ import Functions.Helpers
 -- run the game
 main :: IO ()
 main = do
-  -- ask for width, height and mine count
   putStrLn "Enter width, height and number of mines, e.g. 10 10 10"
   input <- getLine
 
   -- parse input
-  -- input is space separated, if the input is not 3 words then ask new input
   let inputWords = words input
   if length inputWords /= 3 then do
     putStrLn "Invalid input."
@@ -44,6 +42,7 @@ main = do
         else do
           randomGenerator <- newStdGen -- initialize new random number generator
           let board = calculateNumbers $ generateBoard width height mines randomGenerator -- generate a board with mines and then calculate the numbers of mines around each tile
+          putStrLn ""
           putStrLn "Welcome to Minesweeper!"
           putStrLn "Legend: * - unrevealed, # - revealed, F - flagged, x - mine, number - number of mines around the tile"
           putStrLn "Flagging a tile again unflags it. Flagging all mines wins the game."
